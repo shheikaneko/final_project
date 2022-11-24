@@ -48,7 +48,7 @@ List of all the variables used in this project is described in `BRFSS_final_Code
 -   `height_meter`: Height in meter (continuous)
 -   `weight_kg`: Weight in kilogram (continuous)
 -   `bmi`: Body Mass Index (BMI) (continuous)
--   `diabete`: History of Diabetes Diagnosis
+-   `diabete`: History of Diabetes Diagnosis 
 
 #### Loading packages
 
