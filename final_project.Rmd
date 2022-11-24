@@ -384,5 +384,7 @@ augment(bt_results_on_train,
   roc_auc(truth = diabete, 
             estimate = c(.pred_0))
 ```
+Surprisingly, the performance on the test data is almost the same as the performance we saw in 5-fold cross validation. In my understanding, there are two reasons. First, this would be the indication that the 5-fold cross validation effectively avoid the overfitting. Second, the large number of sample in both training and testing dataset achieve the consistency in its performance. 
 
 ### Conclusion
+In this short article, I estimate the model to predict the risk of diabetes based on **limited** information which can be easily accessed without ...
