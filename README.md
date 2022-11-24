@@ -1,8 +1,11 @@
 # PSTAT231 Final Project
 
 In this github repository, there are three folders
+
 (1) cleaned_data
+
 (2) codebook
+
 (3) model_fit
 
 In (1),brfss_final.csv is saved. The raw data (in SAS format) exceed the maximum size of the data which can be pushed to github.
@@ -13,3 +16,9 @@ codebook_official: Officially diseminated Codebook (available at: https://www.cd
 BRFSS_final_Codebook: The codebook I made. Only includes the variable used in my project.
 
 In (3), the results of model fitting are stored.
+
+Also, there are one R script (data_processing.R) and one R markdown file (final_project.Rmd)
+
+-  data_processing.R: data cleaning is done. (from raw data to brfss_final.csv)
+
+-  final_project.Rmd: Final project
