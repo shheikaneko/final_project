@@ -1,8 +1,10 @@
 ---
 title: "Final Project"
 author: "Shuhei Kaneko"
-date: "2022-11-11"
-output: pdf_document
+date: "November 2022"
+output: 
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ### Introduction
@@ -21,7 +23,7 @@ I use 2021 (latest) version of Behavioral Risk Factor Surveillance System (BRFSS
 
 Data cleaning is executed by the R script named `data_processing.R`. Please refer to this file for the detailed steps. Here, I give a succinct explanation about the steps I took.
 
-1.  Import the raw data. Because the format of raw data is `.xpt` (SAS XPORT File), I used `foreign::read.xport` package.
+1.  Import the raw data. Because the format of raw data is `.xpt` (SAS XPORT File), I used `foreign::read.xport` package. * Because the file size of the raw data is too large to upload on github repository, the raw data is not available at my github repository page. It is available at https://www.cdc.gov/brfss/annual_data/annual_2021.html 
 2.  Select and re-code the variables. If the answer is 9 or 99, it means missing. Hence, I replaced them with `NA`. Also, I replace 7 or 77 (refuse to answer) with `NA`.
 3.  Drop the sample in Puerto Rico (Focusing just on 50 states + DC).
 4.  As `age` variable is truncated at 80 (coded as 80 if older than 80), I dropped these truncated sample in order to avoid the measurement error in predictor.
@@ -61,6 +63,7 @@ library(MASS)
 library(discrim)
 library(ranger) #random forest
 library(xgboost)
+library(vip)
 ```
 
 Import csv file (processed using `data_processing.R` script) as a tibble:
@@ -96,9 +99,9 @@ dim(diabete_test)
 
 #### Descriptive statistics
 
-The distribution of outcome variables by ggplot. We can see that the fraction of people with diabetes history is approximately 14.8 percent, which is slightly higher than the estimate by CDC, but remember that I coded Yes for pre-diabete or borderline people.
+The distribution of outcome variables by ggplot. We can see that the fraction of people with diabetes history is approximately 14.8 percent, which is slightly higher than the estimate by CDC, but remember that I coded Yes for pre-diabetes or borderline people.
 
-```{r, out.width="50%",align="center"}
+```{r, out.width="75%",align="center"}
 hist_diabete <- diabete_train %>%  
   ggplot(aes(as.factor(diabete))) +
   geom_bar() +
@@ -113,7 +116,7 @@ mean_outcome
 
 Next, I check the correlation between outcome (i.e. diabetes) and predictors: I can see that general health description, age weight, and BMI may be a good predictor because the correlation seems to be more significant than others.
 
-```{r,out.width="50%",align="center"}
+```{r,out.width="75%",align="center"}
 diabete_train %>% 
   dplyr::select(diabete,genhlth,physhlth, 
          menthlth, ins_dummy,sex,
@@ -313,8 +316,6 @@ bt_tune <- bt_workflow %>%
 # save results
 save(bt_tune, bt_workflow, file = "model_fit/bt_tune.rda")
 ```
-#### Support vector machine
-
 
 ### Model Analysis
 - Logistic regression
@@ -344,8 +345,44 @@ show_best(bt_tune, metric = "roc_auc") %>% dplyr::select(-.estimator, -.config)
 ```
 
 Combining all the performance results, I conclude that 
-Boosted tree model is the best model, and random forest is almost as precise as logistic regression. In the next section, I apply these two models to test data and measure the prediction performance (by AUC).
+**Boosted tree model** is the best model, and random forest is almost as precise as logistic regression. In the next section, I apply these two models to test data and measure the prediction performance (by AUC).
+
+```{r, warning=FALSE}
+bt_spec <- boost_tree(mtry = 8, trees = 334,min_n = 14) %>%
+  set_engine("xgboost", importance = TRUE) %>%
+  set_mode("classification")
+  
+bt_fit <- fit(bt_spec, diabete ~ .,
+              data = diabete_train)
+
+vip(bt_fit)
+
+```
+The figure implies that age, weight, and BMI are the important predictors of diabetes history among all. Here, one important finding is that variables like `genhlth`, `physhlth` and `menthlth` are not as important as the above variables. This result suggests that nudging people from the information such as weight and age (which are comparatively easier for health sector to get) will be effective. 
 
 ### Applying the Best Model(s) to the Test Set
+Now, I apply boosted tree (with best tuning parameters) on all the testing data:
+```{r}
+bt_workflow_tuned <- bt_workflow %>% 
+  finalize_workflow(select_best(bt_tune, metric = "roc_auc"))
+
+bt_results_on_train <- fit(bt_workflow_tuned, diabete_train)
+
+
+```
+
+Finally, I see the performance on testing data. Here, I provide the ROC curve and the AUC:
+```{r}
+augment(bt_results_on_train, 
+        new_data = diabete_test) %>%
+  roc_curve(truth = diabete, 
+            estimate = c(.pred_0)) %>% 
+  autoplot()
+
+augment(bt_results_on_train, 
+        new_data = diabete_test) %>%
+  roc_auc(truth = diabete, 
+            estimate = c(.pred_0))
+```
 
 ### Conclusion
