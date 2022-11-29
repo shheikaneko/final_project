@@ -387,4 +387,6 @@ augment(bt_results_on_train,
 Surprisingly, the performance on the test data is almost the same as the performance we saw in 5-fold cross validation. In my understanding, there are two reasons. First, this would be the indication that the 5-fold cross validation effectively avoid the overfitting. Second, the large number of sample in both training and testing dataset achieve the consistency in its performance. 
 
 ### Conclusion
-In this short article, I estimate the model to predict the risk of diabetes based on **limited** information which can be easily accessed without ...
+In this short article, I estimate the model to predict the risk of diabetes based on **limited** information which can be easily accessed without experiments or detailed surveys that costs a lot of funds. Surprisingly, I found that the prediction performance based on these limited information is  decent: AUC is almost 0.8. Thanks to the large sample size, the performance of my boosted tree model on the test sample was almost as good as that on training dataset. 
+
+Diabetes is one of the common disease all over the world; however, on the other hand, it is preventable by taking healthy habit. My results of this project suggest the importance of cooperation between public heath sector (such as department of health in each state) and local hospitals. For instance, if hospitals provide some basic patients' information such as weight or BMI to administrative sectors, the effective intervention (e.g. recommendation of diabetes screening) will be feasible. 
